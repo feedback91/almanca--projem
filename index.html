@@ -1,70 +1,112 @@
-import streamlit as st
-import random
+.
 
-# Sayfa Ayarları (Ana projeden bağımsız)
-st.set_page_config(page_title="Ruslana ile Almanca - Fiil Paneli", page_icon="🇩🇪")
 
-# --- VERİ SETİ (Senin 50 Fiilin) ---
-if 'fiiller' not in st.session_state:
-    st.session_state.fiiller = [
-        {"f": "sich erinnern", "p": "an", "k": "Akk", "t": "hatırlamak"},
-        {"f": "warten", "p": "auf", "k": "Akk", "t": "beklemek"},
-        {"f": "denken", "p": "an", "k": "Akk", "t": "düşünmek"},
-        {"f": "glauben", "p": "an", "k": "Akk", "t": "inanmak"},
-        {"f": "teilnehmen", "p": "an", "k": "Dat", "t": "katılmak"},
-        {"f": "interessiert sein", "p": "an", "k": "Dat", "t": "ilgilenmek"},
-        {"f": "abhängen", "p": "von", "k": "Dat", "t": "bağlı olmak"},
-        {"f": "träumen", "p": "von", "k": "Dat", "t": "hayal kurmak"},
-        {"f": "sich freuen (Gelecek)", "p": "auf", "k": "Akk", "t": "sevinmek"},
-        {"f": "sich freuen (Şu an)", "p": "über", "k": "Akk", "t": "sevinmek"},
-        # ... (Diğer tüm fiiller buraya eklenebilir)
-    ]
-    st.session_state.skor = 0
-    st.session_state.toplam = 0
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruslana ile Almanca - Fiil Testi</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+        .header { color: #2c3e50; font-size: 1.4rem; margin-bottom: 5px; font-weight: bold; }
+        .sub-header { color: #7f8c8d; font-size: 0.9rem; margin-bottom: 25px; }
+        .verb-box { background: #3498db; color: white; padding: 20px; border-radius: 15px; font-size: 1.5rem; font-weight: bold; margin-bottom: 10px; }
+        .meaning { color: #34495e; font-style: italic; margin-bottom: 25px; display: block; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { padding: 15px; border: 2px solid #3498db; background: white; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 1rem; }
+        button:active { transform: scale(0.95); }
+        .correct { background: #27ae60 !important; color: white !important; border-color: #27ae60 !important; }
+        .wrong { background: #e74c3c !important; color: white !important; border-color: #e74c3c !important; }
+        #feedback { margin-top: 20px; font-weight: bold; min-height: 25px; }
+        .next-btn { margin-top: 15px; width: 100%; background: #2ecc71; color: white; border: none; display: none; padding: 15px; border-radius: 12px; font-size: 1.1rem; }
+        .footer { margin-top: 25px; font-size: 0.8rem; color: #bdc3c7; border-top: 1px solid #eee; padding-top: 15px; }
+    </style>
+</head>
+<body>
 
-# --- KENAR ÇUBUĞU (Sidebar) ---
-st.sidebar.title("📚 Eğitim Menüsü")
-mod = st.sidebar.radio("Bir Mod Seç:", ["Pratik Test", "Tüm Liste", "Tentenistant Kodu"])
-
-# --- MOD 1: PRATİK TEST ---
-if mod == "Pratik Test":
-    st.title("🎯 Fiil + Edat Pratiği")
+<div class="card">
+    <div class="header">Ruslana ile Almanca</div>
+    <div class="sub-header">Fiil + Edat Alıştırması</div>
     
-    # Rastgele soru seçimi
-    soru = random.choice(st.session_state.fiiller)
-    
-    st.subheader(f"'{soru['f']}'")
-    st.write(f"Anlamı: *{soru['t']}*")
-    
-    secenekler = ["an", "auf", "für", "von", "mit", "um", "über", "in", "nach", "vor"]
-    # Doğru cevabı ve 3 rastgele yanlışı al
-    dogru = soru['p']
-    yanlislar = [p for p in secenekler if p != dogru]
-    siklar = random.sample(yanlislar, 3) + [dogru]
-    random.shuffle(siklar)
-    
-    cevap = st.radio("Doğru edatı seçin:", siklar, key="quiz")
-    
-    if st.button("Kontrol Et"):
-        st.session_state.toplam += 1
-        if cevap == dogru:
-            st.success(f"Harika! Doğru cevap: **{dogru}** (+ {soru['k']})")
-            st.session_state.skor += 1
-        else:
-            st.error(f"Maalesef yanlış. Doğru cevap: **{dogru}** (+ {soru['k']})")
-            
-    st.sidebar.metric("Başarı Skoru", f"{st.session_state.skor} / {st.session_state.toplam}")
+    <div id="game">
+        <div class="verb-box" id="verb-display">Yükleniyor...</div>
+        <span class="meaning" id="meaning-display">...</span>
+        
+        <div class="grid" id="options-grid"></div>
+        <div id="feedback"></div>
+        <button class="next-btn" id="next-btn" onclick="initGame()">Sıradaki Fiil ➔</button>
+    </div>
 
-# --- MOD 2: TÜM LİSTE ---
-elif mod == "Tüm Liste":
-    st.title("📖 Fiil Veritabanı")
-    st.table(st.session_state.fiiller)
+    <div class="footer">
+        <b>Tentenistant Sistemi:</b> -t, -ent, -e, -ist, -ant
+    </div>
+</div>
 
-# --- MOD 3: TENTENİSTANT ---
-elif mod == "Tentenistant Kodu":
-    st.title("🧩 Tentenistant Sistemi")
-    st.info("Unutma: **-t, -ent, -e, -ist, -ant** ile biten isimler zayıf çekimlenir (N-Deklination).")
-    st.write("Bu fiilleri bu kodlama ile ezberlemek işini çok kolaylaştıracak!")
-    # Buraya senin mnemonic detaylarını ekleyebiliriz.
+<script>
+    const verbs = [
+        {f: "sich erinnern", p: "an", k: "Akk", t: "hatırlamak"},
+        {f: "warten", p: "auf", k: "Akk", t: "beklemek"},
+        {f: "denken", p: "an", k: "Akk", t: "düşünmek"},
+        {f: "glauben", p: "an", k: "Akk", t: "inanmak"},
+        {f: "teilnehmen", p: "an", k: "Dat", t: "katılmak"},
+        {f: "interessiert sein", p: "an", k: "Dat", t: "ilgilenmek"},
+        {f: "abhängen", p: "von", k: "Dat", t: "bağlı olmak"},
+        {f: "träumen", p: "von", k: "Dat", t: "hayal kurmak"},
+        {f: "sich freuen (Gelecek)", p: "auf", k: "Akk", t: "sevinmek"},
+        {f: "sich freuen (Şu an)", p: "über", k: "Akk", t: "sevinmek"},
+        {f: "bitten", p: "um", k: "Akk", t: "rica etmek"},
+        {f: "sorgen", p: "für", k: "Akk", t: "ilgilenmek/bakmak"},
+        {f: "anfangen", p: "mit", k: "Dat", t: "başlamak"},
+        {f: "aufhören", p: "mit", k: "Dat", t: "durmak"},
+        {f: "sprechen", p: "über", k: "Akk", t: "hakkında konuşmak"},
+        {f: "sich kümmern", p: "um", k: "Akk", t: "ilgilenmek"},
+        {f: "hoffen", p: "auf", k: "Akk", t: "ummak"},
+        {f: "sich vorbereiten", p: "auf", k: "Akk", t: "hazırlanmak"},
+        {f: "sich verlieben", p: "in", k: "Akk", t: "aşık olmak"},
+        {f: "suchen", p: "nach", k: "Dat", t: "aramak"}
+        // Buraya liste eklenebilir
+    ];
 
+    const preps = ["an", "auf", "für", "von", "mit", "um", "über", "in", "nach", "vor"];
 
+    function initGame() {
+        const item = verbs[Math.floor(Math.random() * verbs.length)];
+        document.getElementById('verb-display').innerText = item.f;
+        document.getElementById('meaning-display').innerText = item.t;
+        document.getElementById('feedback').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+        
+        let choices = [item.p];
+        while(choices.length < 4) {
+            let r = preps[Math.floor(Math.random() * preps.length)];
+            if(!choices.includes(r)) choices.push(r);
+        }
+        choices.sort(() => Math.random() - 0.5);
+
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = "";
+        choices.forEach(c => {
+            const btn = document.createElement('button');
+            btn.innerText = c;
+            btn.onclick = function() {
+                const allButtons = grid.querySelectorAll('button');
+                allButtons.forEach(b => b.disabled = true);
+                if(c === item.p) {
+                    btn.classList.add('correct');
+                    document.getElementById('feedback').innerHTML = `<span style="color:#27ae60">Doğru! (+ ${item.k})</span>`;
+                } else {
+                    btn.classList.add('wrong');
+                    document.getElementById('feedback').innerHTML = `<span style="color:#e74c3c">Yanlış! Cevap: ${item.p} (+ ${item.k})</span>`;
+                }
+                document.getElementById('next-btn').style.display = "block";
+            };
+            grid.appendChild(btn);
+        });
+    }
+
+    initGame();
+</script>
+</body>
+</html>

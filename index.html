@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,7 +44,8 @@
 </div>
 
 <script>
-    const verbs = [
+    // 1. SORU LİSTESİ (Buraya dilediğin kadar fiil ekleyebilirsin)
+    let verbs = [
         {f: "warten", p: "auf", k: "Akk", t: "to wait for", ex_de: "Ich warte auf dich.", ex_en: "I am waiting for you."},
         {f: "denken", p: "an", k: "Akk", t: "to think of", ex_de: "Ich denke an meine Zukunft.", ex_en: "I am thinking about my future."},
         {f: "glauben", p: "an", k: "Akk", t: "to believe in", ex_de: "Er glaubt an Gott.", ex_en: "He believes in God."},
@@ -59,8 +59,18 @@
 
     const preps = ["an", "auf", "für", "von", "mit", "um", "über", "in", "nach", "vor"];
 
+    // Sayfa ilk açıldığında listeyi bir kez karıştırıyoruz (Opsiyonel)
+    verbs.sort(() => Math.random() - 0.5);
+
     function initGame() {
-        const item = verbs[Math.floor(Math.random() * verbs.length)];
+        // 2. KUYRUK MANTIĞI: 
+        // Listenin en başındaki soruyu çekiyoruz (shift)
+        const item = verbs.shift();
+        
+        // 3. SONA ATMA:
+        // Çektiğimiz soruyu listenin en sonuna ekliyoruz (push)
+        verbs.push(item);
+
         document.getElementById('verb-display').innerText = item.f;
         document.getElementById('meaning-display').innerText = item.t;
         document.getElementById('feedback').innerText = "";

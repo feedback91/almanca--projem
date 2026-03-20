@@ -1,0 +1,70 @@
+import streamlit as st
+import random
+
+# Sayfa Ayarları (Ana projeden bağımsız)
+st.set_page_config(page_title="Ruslana ile Almanca - Fiil Paneli", page_icon="🇩🇪")
+
+# --- VERİ SETİ (Senin 50 Fiilin) ---
+if 'fiiller' not in st.session_state:
+    st.session_state.fiiller = [
+        {"f": "sich erinnern", "p": "an", "k": "Akk", "t": "hatırlamak"},
+        {"f": "warten", "p": "auf", "k": "Akk", "t": "beklemek"},
+        {"f": "denken", "p": "an", "k": "Akk", "t": "düşünmek"},
+        {"f": "glauben", "p": "an", "k": "Akk", "t": "inanmak"},
+        {"f": "teilnehmen", "p": "an", "k": "Dat", "t": "katılmak"},
+        {"f": "interessiert sein", "p": "an", "k": "Dat", "t": "ilgilenmek"},
+        {"f": "abhängen", "p": "von", "k": "Dat", "t": "bağlı olmak"},
+        {"f": "träumen", "p": "von", "k": "Dat", "t": "hayal kurmak"},
+        {"f": "sich freuen (Gelecek)", "p": "auf", "k": "Akk", "t": "sevinmek"},
+        {"f": "sich freuen (Şu an)", "p": "über", "k": "Akk", "t": "sevinmek"},
+        # ... (Diğer tüm fiiller buraya eklenebilir)
+    ]
+    st.session_state.skor = 0
+    st.session_state.toplam = 0
+
+# --- KENAR ÇUBUĞU (Sidebar) ---
+st.sidebar.title("📚 Eğitim Menüsü")
+mod = st.sidebar.radio("Bir Mod Seç:", ["Pratik Test", "Tüm Liste", "Tentenistant Kodu"])
+
+# --- MOD 1: PRATİK TEST ---
+if mod == "Pratik Test":
+    st.title("🎯 Fiil + Edat Pratiği")
+    
+    # Rastgele soru seçimi
+    soru = random.choice(st.session_state.fiiller)
+    
+    st.subheader(f"'{soru['f']}'")
+    st.write(f"Anlamı: *{soru['t']}*")
+    
+    secenekler = ["an", "auf", "für", "von", "mit", "um", "über", "in", "nach", "vor"]
+    # Doğru cevabı ve 3 rastgele yanlışı al
+    dogru = soru['p']
+    yanlislar = [p for p in secenekler if p != dogru]
+    siklar = random.sample(yanlislar, 3) + [dogru]
+    random.shuffle(siklar)
+    
+    cevap = st.radio("Doğru edatı seçin:", siklar, key="quiz")
+    
+    if st.button("Kontrol Et"):
+        st.session_state.toplam += 1
+        if cevap == dogru:
+            st.success(f"Harika! Doğru cevap: **{dogru}** (+ {soru['k']})")
+            st.session_state.skor += 1
+        else:
+            st.error(f"Maalesef yanlış. Doğru cevap: **{dogru}** (+ {soru['k']})")
+            
+    st.sidebar.metric("Başarı Skoru", f"{st.session_state.skor} / {st.session_state.toplam}")
+
+# --- MOD 2: TÜM LİSTE ---
+elif mod == "Tüm Liste":
+    st.title("📖 Fiil Veritabanı")
+    st.table(st.session_state.fiiller)
+
+# --- MOD 3: TENTENİSTANT ---
+elif mod == "Tentenistant Kodu":
+    st.title("🧩 Tentenistant Sistemi")
+    st.info("Unutma: **-t, -ent, -e, -ist, -ant** ile biten isimler zayıf çekimlenir (N-Deklination).")
+    st.write("Bu fiilleri bu kodlama ile ezberlemek işini çok kolaylaştıracak!")
+    # Buraya senin mnemonic detaylarını ekleyebiliriz.
+
+
